@@ -25,7 +25,7 @@ services:
       - 8081:8080
 
   minio:
-    image: docker.io/bitnami/minio:latest
+    image: bitnami/minio:latest
     ports:
       - '9000:9000'
       - '9001:9001'
