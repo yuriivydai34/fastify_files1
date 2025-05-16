@@ -2,7 +2,11 @@ import fastify from 'fastify'
 
 const server = fastify()
 
+import prisma from './client'
+
 server.get('/ping', async (request, reply) => {
+  const allUsers = await prisma.user.findMany()
+  console.log(allUsers)
   return 'pong\n'
 })
 

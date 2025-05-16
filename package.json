@@ -13,10 +13,12 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@prisma/client": "^6.8.1",
     "fastify": "^5.3.3"
   },
   "devDependencies": {
     "@types/node": "^22.15.18",
+    "prisma": "^6.8.1",
     "typescript": "^5.8.3"
   }
 }
