@@ -4,13 +4,13 @@ const server = fastify()
 
 import prisma from './client'
 
-import * as minio from './minio'
+import { minioMain } from './minio'
 
 server.get('/ping', async (request, reply) => {
   const allUsers = await prisma.user.findMany()
   console.log(allUsers)
   
-  minio.main()
+  minioMain()
   
   return 'pong\n'
 })

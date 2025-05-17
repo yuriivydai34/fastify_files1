@@ -2,7 +2,7 @@ import * as Minio from 'minio'
 
 import 'dotenv/config'
 
-export async function main() {
+export async function minioMain() {
   const minioClient = new Minio.Client({
     endPoint: process.env.MINIO_S3_ENDPOINT || '',
     port: 9000,
