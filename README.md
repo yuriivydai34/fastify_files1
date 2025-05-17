@@ -14,6 +14,8 @@ This section list an major frameworks/libraries used to bootstrap the project.
 * [Next](https://nextjs.org/)
 * [Fastify](https://fastify.dev/)
 * [Prisma](https://www.prisma.io/)
+* [MinIO](https://min.io/)
+* [kafka](https://kafka.apache.org/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
