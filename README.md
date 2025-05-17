@@ -62,7 +62,7 @@ This is an example of how to list things you need to use the software and how to
    ```
 2. prisma push and generate
    ```sh
-   npx prisma push
+   npx prisma db push
    npx prisma generate
    ```
 3. api
