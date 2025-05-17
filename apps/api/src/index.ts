@@ -4,7 +4,7 @@ const server: FastifyInstance = fastify()
 
 import prisma from './client'
 
-import { minioMain, uploadFile } from './minio'
+import { deleteFile, minioMain, uploadFile } from './minio'
 
 import fastifyMultipart, { MultipartFile } from '@fastify/multipart'
 
@@ -12,10 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 server.register(fastifyMultipart)
 
-server.get('/ping', async (request, reply) => {
-  const allUsers = await prisma.user.findMany()
-  console.log(allUsers)
-  
+server.get('/ping', async (request, reply) => {  
   minioMain()
   
   return 'pong\n'
@@ -29,9 +26,37 @@ server.post('/upload', async (request, reply) => {
     buffer = await data.toBuffer()
   }
 
-  const result = await uploadFile(filename, buffer);
+  try {
+    const result = await uploadFile(filename, buffer);
 
-  reply.send(result)
+    //save to db
+    const file = await prisma.file.create({
+      data: {
+        name: filename,
+      },
+    })
+    console.log('file in db>>>>', file);  
+
+    reply.send('File uploaded as object ' + result.name + ' in bucket ' + result.bucket)
+  } catch (error) {
+    reply.send(error);
+  }
+
+  
+})
+
+server.get('/files', async (request, reply) => {
+  const allFiles = await prisma.file.findMany()
+  reply.send(allFiles);
+})
+
+server.delete('/files', async (request: any, reply) => {
+  const id: string = request.query.id;
+  deleteFile(id);
+  
+  await prisma.file.deleteMany({where: {name: id}})
+  
+  reply.send('Deleted ' + id);
 })
 
 server.listen({ port: 8080 }, (err, address) => {
