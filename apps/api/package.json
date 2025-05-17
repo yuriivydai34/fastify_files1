@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon --watch src src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -21,7 +22,9 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.18",
+    "nodemon": "^3.1.10",
     "prisma": "^6.8.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }
