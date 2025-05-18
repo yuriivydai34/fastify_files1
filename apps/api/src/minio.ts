@@ -20,11 +20,11 @@ export async function connectAndCheckBucketExist() {
   } else {
     await minioClient.makeBucket(bucket);
   }
-  return {minioClient, bucket};
+  return { minioClient, bucket };
 }
 
 export async function uploadFile(name: string, file: any) {
-  const {minioClient, bucket} = await connectAndCheckBucketExist();
+  const { minioClient, bucket } = await connectAndCheckBucketExist();
 
   await minioClient.putObject(bucket, name, file, 1234, function (err: Error, objInfo: any) {
     if (err) {
@@ -33,7 +33,7 @@ export async function uploadFile(name: string, file: any) {
     console.log('Success', objInfo.etag, objInfo.versionId)
   })
 
-  return {name, bucket}
+  return { name, bucket }
 }
 
 export async function getFiles() {
@@ -41,7 +41,7 @@ export async function getFiles() {
 }
 
 export async function deleteFile(id: string) {
-  const {minioClient, bucket} = await connectAndCheckBucketExist();
+  const { minioClient, bucket } = await connectAndCheckBucketExist();
   await minioClient.removeObject(bucket, id);
   return id;
 }

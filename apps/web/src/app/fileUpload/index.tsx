@@ -4,7 +4,7 @@ async function saveAction(formData: FormData) {
   console.log(file);
 
   const response = await fetch(
-    `${process.env.API_URL}/upload`,
+    `${process.env.API_URL}/files`,
     {
       method: "POST",
       body: formData
