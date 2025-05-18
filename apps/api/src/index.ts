@@ -4,19 +4,24 @@ const server: FastifyInstance = fastify()
 
 import prisma from './client'
 
-import { deleteFile, minioMain, uploadFile } from './minio'
+import { uploadFile } from './minio'
 
 import fastifyMultipart, { MultipartFile } from '@fastify/multipart'
 
 import { v4 as uuidv4 } from 'uuid';
 
+// bring in routes
+const routes  = require('./routes');
+
 server.register(fastifyMultipart)
 
 server.get('/ping', async (request, reply) => {  
-  minioMain()
-  
   return 'pong\n'
 })
+
+routes.forEach((route: any) => {
+	server.route(route);
+});
 
 server.post('/upload', async (request, reply) => {
   const data: MultipartFile | undefined = await request.file()
@@ -43,20 +48,6 @@ server.post('/upload', async (request, reply) => {
   }
 
   
-})
-
-server.get('/files', async (request, reply) => {
-  const allFiles = await prisma.file.findMany()
-  reply.send(allFiles);
-})
-
-server.delete('/files', async (request: any, reply) => {
-  const id: string = request.query.id;
-  deleteFile(id);
-  
-  await prisma.file.deleteMany({where: {name: id}})
-  
-  reply.send('Deleted ' + id);
 })
 
 server.listen({ port: 8080 }, (err, address) => {
