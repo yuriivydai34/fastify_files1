@@ -40,7 +40,6 @@ exports.post = async (request: any, reply: any) => {
         name: filename,
       },
     })
-    console.log('file in db>>>>', file);
 
     return 'File uploaded as object ' + result.name + ' in bucket ' + result.bucket
   } catch (error) {

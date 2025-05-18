@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export default async function FilesList() {
-  const data = await fetch(`${process.env.API_URL}/files`)
+  const data = await fetch(`${process.env.API_URL}/files`);
   const files = await data.json()
   return (
     <table>

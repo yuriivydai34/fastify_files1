@@ -1,7 +1,8 @@
+import { redirect } from "next/navigation";
+
 async function saveAction(formData: FormData) {
   'use server'
   const file = formData.get('file') as string;
-  console.log(file);
 
   const response = await fetch(
     `${process.env.API_URL}/files`,
@@ -11,7 +12,7 @@ async function saveAction(formData: FormData) {
     }
   )
 
-  console.log(response);
+  redirect(`/`)
 }
 
 export default async function FileUpload() {
