@@ -10,7 +10,7 @@ export default async function Page({
   const handleDelete = async (data : FormData) => {
     "use server";
     const itemId = data.get("itemId");
-    await fetch(`${process.env.API_URL}/files?id=${itemId}`, {method: 'DELETE'});
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files?id=${itemId}`, {method: 'DELETE'});
     redirect(`/`)
   };
 

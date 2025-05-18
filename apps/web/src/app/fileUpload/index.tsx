@@ -2,10 +2,8 @@ import { redirect } from "next/navigation";
 
 async function saveAction(formData: FormData) {
   'use server'
-  const file = formData.get('file') as string;
-
   const response = await fetch(
-    `${process.env.API_URL}/files`,
+    `${process.env.NEXT_PUBLIC_API_URL}/files`,
     {
       method: "POST",
       body: formData

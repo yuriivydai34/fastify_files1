@@ -1,8 +1,30 @@
-import Link from "next/link";
+'use client'
 
-export default async function FilesList() {
-  const data = await fetch(`${process.env.API_URL}/files`);
-  const files = await data.json()
+import Link from "next/link";
+import { useState, useEffect } from 'react'
+
+export default function FilesList() {
+  const [data, setData] = useState<any[]>([])
+  const [isLoading, setLoading] = useState(true)
+
+  const handleDelete = async (id: string) => {
+    // API call to delete an item
+    console.log(id);
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files?id=${id}`, { method: 'DELETE' });
+  };
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/files`)
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data)
+        setLoading(false)
+      })
+  }, [])
+
+  if (isLoading) return <p>Loading...</p>
+  if (!data) return <p>No files data</p>
+
   return (
     <table>
       <thead>
@@ -12,13 +34,14 @@ export default async function FilesList() {
         </tr>
       </thead>
       <tbody>
-        {files.map((file: any) => (
+        {data.map((file: any) => (
           <tr key={file.id}>
             <td>
               {file.name}
             </td>
             <td>
               <Link href={`/filesList/${file.name}`}>Edit</Link>
+              <button onClick={() => handleDelete(file.name)}>Delete</button>
             </td>
           </tr>
         ))}

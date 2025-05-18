@@ -51,7 +51,7 @@ This is an example of how to list things you need to use the software and how to
 
    web
    ```env
-   API_URL=http://localhost:8080
+   NEXT_PUBLIC_API_URL=http://localhost:8080
    ```
 
 ### Run
