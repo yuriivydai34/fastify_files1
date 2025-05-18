@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default async function FilesList() {
   const data = await fetch(`${process.env.API_URL}/files`)
   const files = await data.json()
@@ -16,7 +18,7 @@ export default async function FilesList() {
               {file.name}
             </td>
             <td>
-              <button>Delete</button>
+              <Link href={`/filesList/${file.name}`}>Edit</Link>
             </td>
           </tr>
         ))}
