@@ -2,10 +2,16 @@ import fastify, { FastifyInstance } from 'fastify'
 
 const server: FastifyInstance = fastify()
 
+import cors from '@fastify/cors'
 import fastifyMultipart from '@fastify/multipart'
 
 // bring in routes
 const routes = require('./routes');
+
+server.register(cors, {
+  origin: '*',
+  methods: '*'
+})
 
 server.register(fastifyMultipart)
 
