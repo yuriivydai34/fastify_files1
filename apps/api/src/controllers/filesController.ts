@@ -1,7 +1,7 @@
 import { MultipartFile } from '@fastify/multipart';
 import { v4 as uuidv4 } from 'uuid';
-import prisma from '../client'
-import { deleteFile, uploadFile } from '../minio'
+import prisma from '../services/prismaClient'
+import { deleteFile, uploadFile } from '../services/minio'
 
 exports.get = async (request: any, reply: any) => {
   try {

@@ -1,30 +1,26 @@
-async function handleClick() {
-  console.log('delete!!!');
-}
-
 export default async function FilesList() {
   const data = await fetch(`${process.env.API_URL}/files`)
-  const res = await data.text()
-
+  const files = await data.json()
   return (
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th>file</th>
-            <th>actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>file_name</td>
+    <table>
+      <thead>
+        <tr>
+          <th>file</th>
+          <th>actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {files.map((file: any) => (
+          <tr key={file.id}>
             <td>
-              <input type="button" value="Delete" />
+              {file.name}
+            </td>
+            <td>
+              <button>Delete</button>
             </td>
           </tr>
-        </tbody>
-      </table>
-      <p>{res}</p>
-    </div>
+        ))}
+      </tbody>
+    </table>
   );
 }
