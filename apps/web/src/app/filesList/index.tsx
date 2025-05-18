@@ -11,6 +11,9 @@ export default function FilesList() {
     // API call to delete an item
     console.log(id);
     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files?id=${id}`, { method: 'DELETE' });
+
+    // delete the file, and reload list
+    setData(data => data.filter((f) => f.name !== id));
   };
 
   useEffect(() => {
