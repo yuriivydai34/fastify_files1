@@ -1,5 +1,5 @@
-import Fastify, { FastifyInstance } from 'fastify'
-import websocket from '@fastify/websocket'
+import Fastify, { FastifyInstance, FastifyRequest } from 'fastify'
+import websocket, {WebSocket} from '@fastify/websocket'
 
 const server: FastifyInstance = Fastify()
 
@@ -11,7 +11,7 @@ const routes = require('./routes');
 
 server.register(websocket)
 server.register(async function (fastify) {
-  fastify.get('/', { websocket: true }, (socket /* WebSocket */, req /* FastifyRequest */) => {
+  fastify.get('/', { websocket: true }, (socket: WebSocket, req: FastifyRequest) => {
     socket.on('message', message => {
       console.log(message.toString())
       socket.send('hi from server')
