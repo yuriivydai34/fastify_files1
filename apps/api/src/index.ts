@@ -1,4 +1,4 @@
-import Fastify, { FastifyInstance, FastifyRequest } from 'fastify'
+import Fastify, { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import websocket, {WebSocket} from '@fastify/websocket'
 
 const server: FastifyInstance = Fastify()
@@ -26,7 +26,7 @@ server.register(cors, {
 
 server.register(fastifyMultipart)
 
-server.get('/ping', async (request, reply) => {
+server.get('/ping', async (request: FastifyRequest, reply: FastifyReply) => {
   return 'pong\n'
 })
 

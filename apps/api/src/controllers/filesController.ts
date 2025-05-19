@@ -2,8 +2,10 @@ import { MultipartFile } from '@fastify/multipart';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../services/prismaClient'
 import { deleteFile, uploadFile } from '../services/minio'
+import { FastifyReply, FastifyRequest } from 'fastify';
+import { MyRequest } from '../types';
 
-exports.get = async (request: any, reply: any) => {
+exports.get = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const allFiles = await prisma.file.findMany()
     return allFiles;
@@ -12,7 +14,7 @@ exports.get = async (request: any, reply: any) => {
   }
 };
 
-exports.delete = async (request: any, reply: any) => {
+exports.delete = async (request: MyRequest, reply: FastifyReply) => {
   try {
     const id: string = request.query.id;
     deleteFile(id);
@@ -23,7 +25,7 @@ exports.delete = async (request: any, reply: any) => {
   }
 };
 
-exports.post = async (request: any, reply: any) => {
+exports.post = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const data: MultipartFile | undefined = await request.file()
     let buffer;
