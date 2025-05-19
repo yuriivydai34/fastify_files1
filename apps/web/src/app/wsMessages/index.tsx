@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 
-const wsUrl = 'ws://localhost:4000';
+const wsUrl = 'ws://localhost:8080';
 
 export default function WsMessages() {
   useEffect(() => {
     const ws = new WebSocket(wsUrl);
     ws.onopen = () => {
       console.log('Connected to WebSocket');
-      ws.send('Hello, WebSocket!');
+      ws.send('hi from client');
     };
     ws.onmessage = (event) => {
       console.log('Message received:', event.data);

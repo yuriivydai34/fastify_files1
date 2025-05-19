@@ -1,12 +1,23 @@
-import fastify, { FastifyInstance } from 'fastify'
+import Fastify, { FastifyInstance } from 'fastify'
+import websocket from '@fastify/websocket'
 
-const server: FastifyInstance = fastify()
+const server: FastifyInstance = Fastify()
 
 import cors from '@fastify/cors'
 import fastifyMultipart from '@fastify/multipart'
 
 // bring in routes
 const routes = require('./routes');
+
+server.register(websocket)
+server.register(async function (fastify) {
+  fastify.get('/', { websocket: true }, (socket /* WebSocket */, req /* FastifyRequest */) => {
+    socket.on('message', message => {
+      console.log(message.toString())
+      socket.send('hi from server')
+    })
+  })
+})
 
 server.register(cors, {
   origin: '*',
