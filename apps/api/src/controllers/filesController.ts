@@ -16,7 +16,7 @@ exports.get = async (request: FastifyRequest, reply: FastifyReply) => {
 
 exports.delete = async (request: MyRequest, reply: FastifyReply) => {
   try {
-    const id: string = request.query.id;
+    const { id } = request.query;
     deleteFile(id);
     await prisma.file.deleteMany({ where: { name: id } })
     return 'Deleted ' + id;
