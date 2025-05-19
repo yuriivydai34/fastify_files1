@@ -13,8 +13,8 @@ server.register(websocket)
 server.register(async function (fastify) {
   fastify.get('/', { websocket: true }, (socket: WebSocket, req: FastifyRequest) => {
     socket.on('message', message => {
-      console.log(message.toString())
-      socket.send('hi from server')
+      // console.log(message.toString())
+      socket.send(message.toString())
     })
   })
 })
