@@ -18,7 +18,7 @@ export default async function FileUpload() {
     <div>
       <form action={saveAction}>
         <input type="file" name="file" />
-        <input type="submit" />
+        <input className="btn btn-green" type="submit" />
       </form>
     </div>
   );

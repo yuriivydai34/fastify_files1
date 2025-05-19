@@ -29,22 +29,22 @@ export default function FilesList() {
   if (!data) return <p>No files data</p>
 
   return (
-    <table>
+    <table className="border-collapse border border-gray-400">
       <thead>
         <tr>
-          <th>file</th>
-          <th>actions</th>
+          <th className="border border-gray-300">file</th>
+          <th className="border border-gray-300">actions</th>
         </tr>
       </thead>
       <tbody>
         {data.map((file: any) => (
           <tr key={file.id}>
-            <td>
+            <td className="border border-gray-300">
               {file.name}
             </td>
-            <td>
-              <Link href={`/filesList/${file.name}`}>Edit</Link>
-              <button onClick={() => handleDelete(file.name)}>Delete</button>
+            <td className="border border-gray-300">
+              <Link className="btn btn-blue" href={`/filesList/${file.name}`}>Edit</Link>
+              <button className="btn btn-red" onClick={() => handleDelete(file.name)}>Delete</button>
             </td>
           </tr>
         ))}
