@@ -3,6 +3,7 @@ import * as z from "zod";
 export const uploadFileSchema = z.object({
   name: z.string(),
   file: z.string(),
+  type: z.string().optional()
 });
 
 export const deleteFileSchema = z.object({

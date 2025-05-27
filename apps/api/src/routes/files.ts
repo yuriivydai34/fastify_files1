@@ -4,17 +4,31 @@ import { TRPCError } from "@trpc/server";
 import { router, publicProcedure } from "./trpc";
 import { deleteFileSchema, uploadFileSchema } from "schema";
 import { randomUUID } from "crypto";
-import { mkdir, readdir, unlink, stat } from "fs/promises";
-import { writeFileSync } from "fs";
-import { join } from "path";
-import { env } from "../config/env";
+import { minioClient, MINIO_BUCKET } from "../config/minio";
 
-const UPLOAD_DIR = join(process.cwd(), "uploads");
-const BASE_URL = `http://${env.HOST}:${env.PORT}/uploads`;
+// Helper function to generate presigned URL with expiry
+const getPresignedUrl = async (objectName: string) => {
+  try {
+    // Generate URL that expires in 24 hours
+    return await minioClient.presignedGetObject(MINIO_BUCKET, objectName, 24 * 60 * 60);
+  } catch (error) {
+    console.error('Error generating presigned URL:', error);
+    return null;
+  }
+};
 
-// Ensure upload directory exists
-const ensureUploadDir = async () => {
-  await mkdir(UPLOAD_DIR, { recursive: true });
+// Helper function to extract object name from URL
+const getObjectNameFromUrl = (url: string | null): string | null => {
+  if (!url) return null;
+  try {
+    // Extract the last part of the URL path as the object name
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split('/');
+    return pathParts[pathParts.length - 1];
+  } catch (error) {
+    console.error('Error parsing URL:', error);
+    return null;
+  }
 };
 
 export const filesRouter = router({
@@ -22,21 +36,42 @@ export const filesRouter = router({
     .input(uploadFileSchema)
     .mutation(async ({ input, ctx }) => {
       try {
-        await ensureUploadDir();
         const fileId = randomUUID();
-        const filePath = join(UPLOAD_DIR, fileId);
+        const fileBuffer = Buffer.from(input.file, 'base64');
+        const contentType = input.type || 'application/octet-stream';
         
-        // Convert base64 to buffer and write to file
-        const fileData = Buffer.from(input.file, 'base64');
-        writeFileSync(filePath, fileData);
+        console.log('Attempting file upload:', {
+          fileId,
+          contentType,
+          size: fileBuffer.length,
+          bucket: MINIO_BUCKET
+        });
+
+        // Upload to MinIO
+        await minioClient.putObject(
+          MINIO_BUCKET,
+          fileId,
+          fileBuffer,
+          fileBuffer.length,
+          { 'Content-Type': contentType }
+        );
+
+        console.log('File uploaded successfully to MinIO');
+
+        // Get the URL for the uploaded file
+        const fileUrl = await getPresignedUrl(fileId);
+        if (!fileUrl) {
+          throw new Error('Failed to generate presigned URL');
+        }
+
+        console.log('Generated presigned URL for file');
         
-        const stats = await stat(filePath);
-        
+        // Save file metadata to database
         const file = await ctx.prisma.file.create({
           data: {
             name: input.name,
-            url: `${BASE_URL}/${fileId}`,
-            size: stats.size,
+            url: fileUrl,
+            size: fileBuffer.length,
           }
         });
         
@@ -48,9 +83,12 @@ export const filesRouter = router({
           url: file.url
         };
       } catch (error) {
+        console.error('File upload error:', error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to upload file",
+          message: error instanceof Error ? 
+            `Failed to upload file: ${error.message}` : 
+            "Failed to upload file",
           cause: error
         });
       }
@@ -64,9 +102,27 @@ export const filesRouter = router({
             createdAt: 'desc'
           }
         });
+
+        // Update presigned URLs for all files
+        const updatedFiles = await Promise.all(
+          files.map(async (file) => {
+            const objectName = getObjectNameFromUrl(file.url);
+            if (!objectName) {
+              console.warn(`Could not extract object name from URL for file ${file.id}`);
+              return file;
+            }
+
+            const newUrl = await getPresignedUrl(objectName);
+            return {
+              ...file,
+              url: newUrl || file.url // fallback to old URL if generation fails
+            };
+          })
+        );
         
-        return files;
+        return updatedFiles;
       } catch (error) {
+        console.error('Get files error:', error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to get files",
@@ -79,34 +135,53 @@ export const filesRouter = router({
     .input(deleteFileSchema)
     .mutation(async ({ input, ctx }) => {
       try {
+        console.log('Attempting to delete file:', input.id);
+
         const file = await ctx.prisma.file.findUnique({
           where: { id: input.id }
         });
         
         if (!file) {
+          console.log('File not found in database:', input.id);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "File not found"
           });
         }
 
-        // Delete from filesystem
-        const fileId = file.url?.split('/').pop();
-        if (fileId) {
-          const filePath = join(UPLOAD_DIR, fileId);
-          await unlink(filePath);
+        // Extract object name from URL
+        const objectName = getObjectNameFromUrl(file.url);
+        if (!objectName) {
+          console.error('Could not extract object name from URL:', file.url);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid file URL format"
+          });
         }
+
+        console.log('Deleting object from MinIO:', {
+          bucket: MINIO_BUCKET,
+          objectName
+        });
+
+        // Delete from MinIO
+        await minioClient.removeObject(MINIO_BUCKET, objectName);
+        console.log('File deleted from MinIO successfully');
 
         // Delete from database
         await ctx.prisma.file.delete({
           where: { id: input.id }
         });
+        console.log('File record deleted from database');
 
         return { success: true };
       } catch (error) {
+        console.error('Delete file error:', error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to delete file",
+          message: error instanceof Error ? 
+            `Failed to delete file: ${error.message}` : 
+            "Failed to delete file",
           cause: error
         });
       }
