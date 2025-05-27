@@ -7,15 +7,32 @@ import { env } from "./config/env";
 import { config } from "./config/config";
 import { appRouter } from "./routes";
 import { initializeKafka } from "./services/kafka";
+import { startConsumer, stopConsumer } from "./services/kafka-consumer";
 
 const app = build({
   logger: config[env.NODE_ENV].logger,
 });
 
-// Initialize Kafka
-initializeKafka().catch((error) => {
+// Initialize Kafka and start consumer
+Promise.all([
+  initializeKafka(),
+  startConsumer()
+]).catch((error) => {
   console.error('Failed to initialize Kafka:', error);
   process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM signal, shutting down...');
+  await stopConsumer();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('Received SIGINT signal, shutting down...');
+  await stopConsumer();
+  process.exit(0);
 });
 
 app.register(fastifyTRPCPlugin, {
