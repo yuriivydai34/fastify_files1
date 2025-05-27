@@ -6,9 +6,16 @@ import { createContext } from "./routes/context";
 import { env } from "./config/env";
 import { config } from "./config/config";
 import { appRouter } from "./routes";
+import { initializeKafka } from "./services/kafka";
 
 const app = build({
   logger: config[env.NODE_ENV].logger,
+});
+
+// Initialize Kafka
+initializeKafka().catch((error) => {
+  console.error('Failed to initialize Kafka:', error);
+  process.exit(1);
 });
 
 app.register(fastifyTRPCPlugin, {

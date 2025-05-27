@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { trpc } from '../utils/trpc';
+import type { TRPCClientError } from '@trpc/client';
+import type { RouterInputs } from '../utils/trpc';
+
+type UploadInput = RouterInputs['files']['uploadFile'];
 
 export const FileUploadForm = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -13,7 +17,7 @@ export const FileUploadForm = () => {
       setError(null);
       utils.files.getFiles.invalidate();
     },
-    onError: (error) => {
+    onError: (error: TRPCClientError<any>) => {
       console.error('Upload error:', error);
       setError(error.message || 'Failed to upload file');
     }
@@ -21,7 +25,10 @@ export const FileUploadForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file) {
+      setError('Please select a file');
+      return;
+    }
 
     setError(null);
     const reader = new FileReader();
@@ -32,14 +39,33 @@ export const FileUploadForm = () => {
 
     reader.onload = async () => {
       try {
-        const base64 = reader.result as string;
-        // Remove the data URL prefix (e.g., "data:image/png;base64,")
-        const base64Data = base64.split(',')[1];
-        await uploadMutation.mutate({
+        if (!reader.result) {
+          throw new Error('Failed to read file');
+        }
+
+        let base64Data: string;
+        if (typeof reader.result === 'string') {
+          // Remove the data URL prefix if it exists
+          base64Data = reader.result.includes('base64,') 
+            ? reader.result.split('base64,')[1] 
+            : reader.result;
+        } else {
+          throw new Error('Invalid file data');
+        }
+
+        const uploadData: UploadInput = {
           name: file.name,
           file: base64Data,
           type: file.type
+        };
+
+        console.log('Uploading file with data:', {
+          name: uploadData.name,
+          type: uploadData.type,
+          fileSize: base64Data.length
         });
+
+        await uploadMutation.mutateAsync(uploadData);
       } catch (err) {
         console.error('File processing error:', err);
         setError(err instanceof Error ? err.message : 'Failed to process file');
@@ -61,7 +87,15 @@ export const FileUploadForm = () => {
             id="file"
             onChange={(e) => {
               setError(null);
-              setFile(e.target.files?.[0] || null);
+              const selectedFile = e.target.files?.[0] || null;
+              if (selectedFile) {
+                console.log('Selected file:', {
+                  name: selectedFile.name,
+                  type: selectedFile.type,
+                  size: selectedFile.size
+                });
+              }
+              setFile(selectedFile);
             }}
             className="block w-full text-sm text-gray-500
               file:mr-4 file:py-2 file:px-4

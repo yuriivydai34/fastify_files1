@@ -5,6 +5,7 @@ import { router, publicProcedure } from "./trpc";
 import { deleteFileSchema, uploadFileSchema } from "schema";
 import { randomUUID } from "crypto";
 import { minioClient, MINIO_BUCKET } from "../config/minio";
+import { publishFileUploadedEvent } from "../services/kafka";
 
 // Helper function to generate presigned URL with expiry
 const getPresignedUrl = async (objectName: string) => {
@@ -74,6 +75,16 @@ export const filesRouter = router({
             size: fileBuffer.length,
           }
         });
+
+        // Publish file uploaded event
+        if (file.url && file.size) {
+          await publishFileUploadedEvent({
+            filename: file.name,
+            path: file.url,
+            size: file.size,
+            mimetype: contentType,
+          });
+        }
         
         return {
           id: file.id,

@@ -1,11 +1,9 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
 import { httpBatchLink } from "@trpc/client";
-import type { inferRouterInputs } from "@trpc/server";
-import type { inferRouterOutputs } from "@trpc/server";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { createTRPCNext } from "@trpc/next";
 import superjson from "superjson";
-import type fastify from "fastify";
-import type { AppRouter } from "api/src/types";
+import type { AppRouter } from "api/src/routes";
 
 function getBaseUrl() {
   if (typeof window !== "undefined")
@@ -24,12 +22,13 @@ function getBaseUrl() {
 export const trpc = createTRPCNext<AppRouter>({
   config() {
     return {
+      transformer: superjson,
       links: [
         httpBatchLink({
           url: `${getBaseUrl()}/api`,
-          transformer: superjson,
         }),
       ],
+      abortOnUnmount: true,
     };
   },
   /**

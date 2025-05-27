@@ -1,28 +1,23 @@
-import { inferAsyncReturnType } from "@trpc/server";
-import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
+import type { FastifyRequest, FastifyReply } from "fastify";
+import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { prisma } from "../lib/prisma";
-// Reference required for compilation
-import type fastify from "fastify";
+import type { Context } from "./trpc";
 
-// eslint-disable-next-line @typescript-eslint/require-await
+// For testing purposes
 export async function createContextInner() {
   return {
     prisma,
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
-export async function createContext({ req, res }: CreateFastifyContextOptions) {
-  const server = req.server;
+export async function createContext({ req, res }: CreateFastifyContextOptions): Promise<Context> {
   const contextInner = await createContextInner();
 
   return {
     ...contextInner,
-    fastify: server,
     req,
     res,
   };
 }
 
-export type Context = inferAsyncReturnType<typeof createContext>;
-export type InnerContext = inferAsyncReturnType<typeof createContextInner>;
+export type InnerContext = Awaited<ReturnType<typeof createContextInner>>;
