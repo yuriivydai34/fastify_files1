@@ -1,5 +1,5 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
-import { httpBatchLink, loggerLink } from "@trpc/client";
+import { httpBatchLink } from "@trpc/client";
 import type { inferRouterInputs } from "@trpc/server";
 import type { inferRouterOutputs } from "@trpc/server";
 import { createTRPCNext } from "@trpc/next";
@@ -10,7 +10,7 @@ import type { AppRouter } from "api/src/types";
 function getBaseUrl() {
   if (typeof window !== "undefined")
     // browser should use relative path
-    return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+    return "http://localhost:5000";
   if (process.env.VERCEL_URL)
     // reference for vercel.com
     return `https://${process.env.VERCEL_URL}`;
@@ -22,26 +22,19 @@ function getBaseUrl() {
 }
 
 export const trpc = createTRPCNext<AppRouter>({
-  config({ ctx }) {
+  config() {
     return {
-      queryClientConfig: {
-        defaultOptions: {
-          queries: {
-            refetchOnWindowFocus: false,
-          },
-        },
-      },
-      transformer: superjson,
       links: [
-        loggerLink({
-          enabled: (opts) =>
-            process.env.NODE_ENV === "development" ||
-            (opts.direction === "down" && opts.result instanceof Error),
+        httpBatchLink({
+          url: `${getBaseUrl()}/api`,
+          transformer: superjson,
         }),
-        httpBatchLink({ url: `${getBaseUrl()}/api` }),
       ],
     };
   },
+  /**
+   * @link https://trpc.io/docs/ssr
+   **/
   ssr: false,
 });
 
