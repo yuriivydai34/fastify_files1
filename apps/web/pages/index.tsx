@@ -12,8 +12,6 @@ export default function Web() {
       <FileUploadForm />
       <FilesTable />
       {health.data && <p>TRPC Health: {health.data.health}</p>}
-      <h1>Web</h1>
-      <Button />
     </div>
   );
 }
