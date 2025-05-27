@@ -5,11 +5,34 @@ Turborepo setup for using:
 - tRPC
 - Next.js
 - ESLint
+- Minio
+- Kafka
+- Prisma
 
 ## Getting Started
 ```bash
-git clone git@github.com:maybemaby/fastify-trpc-next.git
+git clone git@github.com:yuriivydai34/fastify_files1.git
+```
+
+## Env
+```bash
+cd api && cp .env.example .env file
+```
+
+## Run Docker
+```bash
+cd docker && docker-compose up
+```
+
+## Install
+```bash
+corepack up
 pnpm i
+```
+
+## Prisma ORM
+```bash
+npx prisma db push
 ```
 
 ## What's inside?
