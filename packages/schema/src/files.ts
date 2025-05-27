@@ -2,7 +2,7 @@ import * as z from "zod";
 
 export const uploadFileSchema = z.object({
   name: z.string(),
-  file: z.instanceof(Buffer).or(z.instanceof(Uint8Array)),
+  file: z.string(),
 });
 
 export const deleteFileSchema = z.object({

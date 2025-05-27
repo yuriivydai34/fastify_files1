@@ -1,8 +1,11 @@
+/// <reference types="node" />
+
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure } from "./trpc";
 import { deleteFileSchema, uploadFileSchema } from "schema";
 import { randomUUID } from "crypto";
-import { mkdir, writeFile, readdir, unlink, stat } from "fs/promises";
+import { mkdir, readdir, unlink, stat } from "fs/promises";
+import { writeFileSync } from "fs";
 import { join } from "path";
 import { env } from "../config/env";
 
@@ -23,7 +26,9 @@ export const filesRouter = router({
         const fileId = randomUUID();
         const filePath = join(UPLOAD_DIR, fileId);
         
-        await writeFile(filePath, input.file);
+        // Convert base64 to buffer and write to file
+        const fileData = Buffer.from(input.file, 'base64');
+        writeFileSync(filePath, fileData);
         
         const stats = await stat(filePath);
         

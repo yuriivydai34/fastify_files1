@@ -14,7 +14,11 @@
     "noUnusedParameters": false,
     "preserveWatchOutput": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "types": ["node"],
+    "lib": ["ES2020"],
+    "target": "ES2020",
+    "module": "CommonJS"
   },
   "exclude": ["node_modules"]
 }
