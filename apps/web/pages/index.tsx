@@ -1,4 +1,3 @@
-import { Button } from "ui";
 import { trpc } from "../utils/trpc";
 import { FilesTable } from '../components/FilesTable';
 import { FileUploadForm } from '../components/FileUploadForm';
