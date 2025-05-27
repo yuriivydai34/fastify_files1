@@ -17,7 +17,7 @@ const ensureUploadDir = async () => {
 export const filesRouter = router({
   uploadFile: publicProcedure
     .input(uploadFileSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         await ensureUploadDir();
         const fileId = randomUUID();
@@ -27,12 +27,20 @@ export const filesRouter = router({
         
         const stats = await stat(filePath);
         
+        const file = await ctx.prisma.file.create({
+          data: {
+            name: input.name,
+            url: `${BASE_URL}/${fileId}`,
+            size: stats.size,
+          }
+        });
+        
         return {
-          id: fileId,
-          name: input.name,
-          createdAt: new Date(),
-          size: stats.size,
-          url: `${BASE_URL}/${fileId}`
+          id: file.id,
+          name: file.name,
+          createdAt: file.createdAt,
+          size: file.size,
+          url: file.url
         };
       } catch (error) {
         throw new TRPCError({
@@ -44,24 +52,15 @@ export const filesRouter = router({
     }),
 
   getFiles: publicProcedure
-    .query(async () => {
+    .query(async ({ ctx }) => {
       try {
-        await ensureUploadDir();
-        const files = await readdir(UPLOAD_DIR);
-        const fileInfos = await Promise.all(
-          files.map(async (fileId) => {
-            const filePath = join(UPLOAD_DIR, fileId);
-            const stats = await stat(filePath);
-            return {
-              id: fileId,
-              name: fileId, // In a real app, you'd store file names in a database
-              createdAt: stats.birthtime,
-              size: stats.size,
-              url: `${BASE_URL}/${fileId}`
-            };
-          })
-        );
-        return fileInfos;
+        const files = await ctx.prisma.file.findMany({
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+        
+        return files;
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -73,10 +72,31 @@ export const filesRouter = router({
 
   deleteFile: publicProcedure
     .input(deleteFileSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
-        const filePath = join(UPLOAD_DIR, input.id);
-        await unlink(filePath);
+        const file = await ctx.prisma.file.findUnique({
+          where: { id: input.id }
+        });
+        
+        if (!file) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "File not found"
+          });
+        }
+
+        // Delete from filesystem
+        const fileId = file.url?.split('/').pop();
+        if (fileId) {
+          const filePath = join(UPLOAD_DIR, fileId);
+          await unlink(filePath);
+        }
+
+        // Delete from database
+        await ctx.prisma.file.delete({
+          where: { id: input.id }
+        });
+
         return { success: true };
       } catch (error) {
         throw new TRPCError({

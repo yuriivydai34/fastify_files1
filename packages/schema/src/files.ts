@@ -6,16 +6,16 @@ export const uploadFileSchema = z.object({
 });
 
 export const deleteFileSchema = z.object({
-  id: z.string(),
+  id: z.number(),
 });
 
 export type UploadFileInput = z.infer<typeof uploadFileSchema>;
 export type DeleteFileInput = z.infer<typeof deleteFileSchema>;
 
 export type FileInfo = {
-  id: string;
+  id: number;
   name: string;
   createdAt: Date;
-  size: number;
-  url: string;
+  size: number | null;
+  url: string | null;
 }; 
