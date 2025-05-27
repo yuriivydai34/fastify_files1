@@ -5,6 +5,15 @@ import type { RouterInputs } from '../utils/trpc';
 
 type UploadInput = RouterInputs['files']['uploadFile'];
 
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB in bytes
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
 export const FileUploadForm = () => {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +36,11 @@ export const FileUploadForm = () => {
     e.preventDefault();
     if (!file) {
       setError('Please select a file');
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setError(`File size exceeds 100MB limit (${formatFileSize(file.size)})`);
       return;
     }
 
@@ -62,7 +76,7 @@ export const FileUploadForm = () => {
         console.log('Uploading file with data:', {
           name: uploadData.name,
           type: uploadData.type,
-          fileSize: base64Data.length
+          fileSize: formatFileSize(file.size)
         });
 
         await uploadMutation.mutateAsync(uploadData);
@@ -89,10 +103,15 @@ export const FileUploadForm = () => {
               setError(null);
               const selectedFile = e.target.files?.[0] || null;
               if (selectedFile) {
+                if (selectedFile.size > MAX_FILE_SIZE) {
+                  setError(`File size exceeds 100MB limit (${formatFileSize(selectedFile.size)})`);
+                  e.target.value = '';
+                  return;
+                }
                 console.log('Selected file:', {
                   name: selectedFile.name,
                   type: selectedFile.type,
-                  size: selectedFile.size
+                  size: formatFileSize(selectedFile.size)
                 });
               }
               setFile(selectedFile);
@@ -104,6 +123,7 @@ export const FileUploadForm = () => {
               file:bg-blue-50 file:text-blue-700
               hover:file:bg-blue-100"
           />
+          <p className="mt-1 text-xs text-gray-500">Maximum file size: 100MB</p>
         </div>
         
         {error && (
